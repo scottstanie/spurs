@@ -3,6 +3,11 @@
 __all__ = ['make_differentiation_matrices', 'make_laplace_kernel']
 
 # Cell
+import numpy as np
+from scipy import sparse as sp
+from scipy.fft import dctn, idctn
+
+# Cell
 def make_differentiation_matrices(rows, columns, boundary_conditions='neumann', dtype=np.float32):
     """Generate derivative operators as sparse matrices.
 
