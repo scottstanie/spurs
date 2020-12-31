@@ -3,7 +3,9 @@
 __all__ = ["index", "modules", "custom_doc_links", "git_url"]
 
 index = {"make_differentiation_matrices": "00_core.ipynb",
-         "make_laplace_kernel": "00_core.ipynb"}
+         "make_laplace_kernel": "00_core.ipynb",
+         "p_shrink": "00_core.ipynb",
+         "unwrap": "00_core.ipynb"}
 
 modules = ["core.py"]
 

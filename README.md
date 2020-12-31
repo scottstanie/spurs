@@ -1,25 +1,20 @@
 # shrinkwrap
-> Unwrap InSAR interferograams
 
 
-```python
-%load_ext autoreload
-%autoreload 2
-```
-
-This file will become your README and also the index of your documentation.
 
 ## Install
 
 `pip install shrinkwrap`
+
 `conda install shrinkwrap`
 
 ## How to use
 
-# TODO
+TODO: make console script
+make rasterio optional install
 
-For an interferogram in binary format
+For an interferogram in binary format...
 
-```python
-1+1
-```
+## References
+
+1. Chartrand, Rick, Matthew T. Calef, and Michael S. Warren. "Exploiting Sparsity for Phase Unwrapping." IGARSS 2019-2019 IEEE International Geoscience and Remote Sensing Symposium. IEEE, 2019.
