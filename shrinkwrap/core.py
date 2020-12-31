@@ -182,7 +182,7 @@ def unwrap(
     F_old = np.zeros_like(f_wrapped)
 
     # Get K ready once for solving linear system
-    K = make_laplace_kernel(rows, columns)
+    K = make_laplace_kernel(rows, columns, dtype=dtype)
 
     for iteration in range(max_iters):
 
