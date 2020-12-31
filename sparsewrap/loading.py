@@ -89,7 +89,7 @@ def load_interferogram(filename, dtype=np.complex64, columns=None, rsc_file=None
                 columns = rsc_data["width"]
             except AssertionError:
                 raise ValueError(
-                    "columns or rsc_file not passed, {filename + '.rsc'} does not exist."
+                    f"columns or rsc_file not passed, {filename + '.rsc'} does not exist."
                 )
 
     return data.reshape((-1, columns))

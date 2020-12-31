@@ -79,7 +79,6 @@ def main():
     # TODO: save as other types?
     unw_phase = unwrap(phase, **arg_dict)
     unw_with_mag = np.hstack((mag, unw_phase))
-    print(unw_with_mag.dtype)
     unw_with_mag.tofile(outname)
 
 # Cell

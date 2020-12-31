@@ -1,7 +1,7 @@
 {
-  "shrinkwrap": {
+  "sparsewrap": {
     "Overview": "/",
-    "shrinkwrap": "core.html",
+    "sparsewrap": "core.html",
     "Loading": "loading.html",
     "CLI: command line interface": "cli.html"
   }

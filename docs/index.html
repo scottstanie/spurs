@@ -1,6 +1,6 @@
 ---
 
-title: shrinkwrap
+title: sparsewrap
 
 
 keywords: fastai
@@ -37,8 +37,8 @@ nb_path: "index.ipynb"
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p><code>pip install shrinkwrap</code></p>
-<p><code>conda install shrinkwrap</code></p>
+<p><code>pip install sparsewrap</code></p>
+<p><code>conda install sparsewrap</code></p>
 
 </div>
 </div>
@@ -51,9 +51,14 @@ nb_path: "index.ipynb"
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>TODO: make console script
-make rasterio optional install</p>
-<p>For an interferogram in binary format...</p>
+<div class="highlight"><pre><span></span>sparsewrap 20150608_20170808.int
+</pre></div>
+<p>By default, will output to file <code>20150608_20170808.unw</code> matching the name.</p>
+<div class="highlight"><pre><span></span>sparsewrap 20150608_20170808.int -o 20150608_20170808.unw --debug --tol .5
+</pre></div>
+<p>For a input interferograms which aren't complex float32 binary format, <code>gdal</code> must be installed:</p>
+<div class="highlight"><pre><span></span>sparsewrap 20150608_20170808.vrt -o 20150608_20170808.unw
+</pre></div>
 
 </div>
 </div>

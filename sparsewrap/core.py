@@ -220,5 +220,4 @@ def unwrap(
 
     if debug:
         print(f"Finished after {iteration} with change={change}")
-    print(F.dtype)
     return F

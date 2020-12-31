@@ -1,7 +1,7 @@
-repository: fastai/shrinkwrap
+repository: scottstanie/sparsewrap
 output: web
-topnav_title: shrinkwrap
-site_title: shrinkwrap
+topnav_title: sparsewrap
+site_title: sparsewrap
 company_name: Scott Staniewicz
 description: InSAR phase unwrapping using shrinkage mappings with ADMM
 # Set to false to disable KaTeX math
@@ -60,4 +60,4 @@ sidebars:
 - home_sidebar
 
 theme: jekyll-theme-cayman
-baseurl: /shrinkwrap/
+baseurl: /sparsewrap/

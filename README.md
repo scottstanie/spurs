@@ -1,19 +1,31 @@
-# shrinkwrap
+# sparsewrap
 
 
 
 ## Install
 
-`pip install shrinkwrap`
+`pip install sparsewrap`
 
-`conda install shrinkwrap`
+`conda install sparsewrap`
 
 ## How to use
 
-TODO: make console script
-make rasterio optional install
+```bash
+sparsewrap 20150608_20170808.int
+```
+By default, will output to file `20150608_20170808.unw` matching the name.
 
-For an interferogram in binary format...
+
+```bash
+sparsewrap 20150608_20170808.int -o 20150608_20170808.unw --debug --tol .5
+```
+
+For a input interferograms which aren't complex float32 binary format, `gdal` must be installed:
+
+```bash
+sparsewrap 20150608_20170808.vrt -o 20150608_20170808.unw
+```
+
 
 ## References
 
