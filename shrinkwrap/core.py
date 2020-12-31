@@ -95,7 +95,7 @@ def p_shrink(X, lmbda=1, p=0, epsilon=0):
 # Cell
 def unwrap(f_wrapped, Dx=None, Dy=None, phi_x=None, phi_y=None, max_iters=100,
            tol=np.pi/5, lmbda=1, p=0, c=1.3, dtype=np.float32, boundary_conditions='neumann'):
-    """Unwrap phaase
+    """Unwrap phase
 
     """
     rows, columns = f_wrapped.shape
@@ -103,7 +103,7 @@ def unwrap(f_wrapped, Dx=None, Dy=None, phi_x=None, phi_y=None, max_iters=100,
 
 
     if Dx is None or Dy is None:
-        print(f"Making Dx, Dy with {boundary_conditions = }")
+        print(f"Making Dx, Dy with BCs={boundary_conditions}")
         Dx, Dy = make_differentiation_matrices(*f_wrapped.shape, boundary_conditions=boundary_conditions)
 
     if phi_x is None or phi_y is None:
@@ -152,7 +152,7 @@ def unwrap(f_wrapped, Dx=None, Dy=None, phi_x=None, phi_y=None, max_iters=100,
 
         change = np.max(np.abs(F - F_old))
         if debug:
-            print(f"{iteration = } with {change = }")
+            print(f"Iteration:{iteration} change={change}")
 
         if change < tol or np.isnan(change):
             break
@@ -160,5 +160,5 @@ def unwrap(f_wrapped, Dx=None, Dy=None, phi_x=None, phi_y=None, max_iters=100,
             F_old = F
 
 
-    print(f"Finished after {iteration = } with {change = }")
+    print(f"Finished after {iteration} with change={change}")
     return F

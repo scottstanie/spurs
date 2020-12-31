@@ -300,7 +300,7 @@ $$
 <div class="output_markdown rendered_html output_subarea ">
 <h4 id="unwrap" class="doc_header"><code>unwrap</code><a href="https://github.com/fastai/shrinkwrap/tree/master/shrinkwrap/core.py#L96" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>unwrap</code>(<strong><code>f_wrapped</code></strong>, <strong><code>Dx</code></strong>=<em><code>None</code></em>, <strong><code>Dy</code></strong>=<em><code>None</code></em>, <strong><code>phi_x</code></strong>=<em><code>None</code></em>, <strong><code>phi_y</code></strong>=<em><code>None</code></em>, <strong><code>max_iters</code></strong>=<em><code>100</code></em>, <strong><code>tol</code></strong>=<em><code>0.6283185307179586</code></em>, <strong><code>lmbda</code></strong>=<em><code>1</code></em>, <strong><code>p</code></strong>=<em><code>0</code></em>, <strong><code>c</code></strong>=<em><code>1.3</code></em>, <strong><code>dtype</code></strong>=<em><code>float32</code></em>, <strong><code>boundary_conditions</code></strong>=<em><code>'neumann'</code></em>)</p>
 </blockquote>
-<p>Unwrap phaase</p>
+<p>Unwrap phase</p>
 
 </div>
 
@@ -315,6 +315,29 @@ $$
     {% raw %}
     
 <div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+<div class="output_subarea output_text output_error">
+<pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-green-fg">&lt;ipython-input-1-0ae1a5f85880&gt;</span> in <span class="ansi-cyan-fg">&lt;module&gt;</span>
+<span class="ansi-green-intense-fg ansi-bold">      1</span> <span class="ansi-red-fg"># export</span>
+<span class="ansi-green-intense-fg ansi-bold">      2</span> def unwrap(f_wrapped, Dx=None, Dy=None, phi_x=None, phi_y=None, max_iters=100,
+<span class="ansi-green-fg">----&gt; 3</span><span class="ansi-red-fg">            tol=np.pi/5, lmbda=1, p=0, c=1.3, dtype=np.float32, boundary_conditions=&#39;neumann&#39;):
+</span><span class="ansi-green-intense-fg ansi-bold">      4</span>     &#34;&#34;&#34;Unwrap phase
+<span class="ansi-green-intense-fg ansi-bold">      5</span> 
+
+<span class="ansi-red-fg">NameError</span>: name &#39;np&#39; is not defined</pre>
+</div>
+</div>
+
+</div>
+</div>
 
 </div>
     {% endraw %}
