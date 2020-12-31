@@ -10,20 +10,24 @@
 
 ## How to use
 
+Installation will create a command line script `unw`:
+
 ```bash
-sparsewrap 20150608_20170808.int
+unw 20150608_20170808.int
 ```
 By default, will output to file `20150608_20170808.unw` matching the name.
 
-
+To increase the tolerance (from $\pi/10$ radians) for faster convergence, showing iteration stats:
 ```bash
-sparsewrap 20150608_20170808.int -o 20150608_20170808.unw --debug --tol .5
+unw 20150608_20170808.int -o 20150608_20170808.unw --tol .5 --debug
 ```
 
-For a input interferograms which aren't complex float32 binary format, `gdal` must be installed:
+See `unw --help` for all options.
+
+Note that for input interferograms which aren't complex, float32 binary format, `gdal` must be installed. E.g. for a VRT input:
 
 ```bash
-sparsewrap 20150608_20170808.vrt -o 20150608_20170808.unw
+unw 20150608_20170808.vrt -o 20150608_20170808.unw
 ```
 
 

@@ -51,13 +51,16 @@ nb_path: "index.ipynb"
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<div class="highlight"><pre><span></span>sparsewrap 20150608_20170808.int
+<p>Installation will create a command line script <code>unw</code>:</p>
+<div class="highlight"><pre><span></span>unw 20150608_20170808.int
 </pre></div>
 <p>By default, will output to file <code>20150608_20170808.unw</code> matching the name.</p>
-<div class="highlight"><pre><span></span>sparsewrap 20150608_20170808.int -o 20150608_20170808.unw --debug --tol .5
+<p>To increase the tolerance (from $\pi/10$ radians) for faster convergence, showing iteration stats:</p>
+<div class="highlight"><pre><span></span>unw 20150608_20170808.int -o 20150608_20170808.unw --tol .5 --debug
 </pre></div>
-<p>For a input interferograms which aren't complex float32 binary format, <code>gdal</code> must be installed:</p>
-<div class="highlight"><pre><span></span>sparsewrap 20150608_20170808.vrt -o 20150608_20170808.unw
+<p>See <code>unw --help</code> for all options.</p>
+<p>Note that for input interferograms which aren't complex, float32 binary format, <code>gdal</code> must be installed. E.g. for a VRT input:</p>
+<div class="highlight"><pre><span></span>unw 20150608_20170808.vrt -o 20150608_20170808.unw
 </pre></div>
 
 </div>
