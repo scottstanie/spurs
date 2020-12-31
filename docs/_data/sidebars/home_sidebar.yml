@@ -13,7 +13,7 @@ entries:
       title: shrinkwrap
       url: core.html
     - output: web,pdf
-      title: Lo
+      title: Loading
       url: loading.html
     - output: web,pdf
       title: 'CLI: command line interface'

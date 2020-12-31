@@ -294,7 +294,7 @@ divide by the eigenvalues of the operator, then take the IDCT.</p>
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="make_laplace_kernel" class="doc_header"><code>make_laplace_kernel</code><a href="https://github.com/fastai/shrinkwrap/tree/master/shrinkwrap/core.py#L105" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>make_laplace_kernel</code>(<strong><code>rows</code></strong>, <strong><code>columns</code></strong>)</p>
+<h4 id="make_laplace_kernel" class="doc_header"><code>make_laplace_kernel</code><a href="https://github.com/fastai/shrinkwrap/tree/master/shrinkwrap/core.py#L105" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>make_laplace_kernel</code>(<strong><code>rows</code></strong>, <strong><code>columns</code></strong>, <strong><code>dtype</code></strong>=<em><code>'float32'</code></em>)</p>
 </blockquote>
 <p>Generate eigenvalues of diagonalized Laplacian operator</p>
 <p>Used for quickly solving the linear system ||D \Phi - phi|| = 0</p>
@@ -330,11 +330,11 @@ or <a href="https://elonen.iki.fi/code/misc-notes/neumann-cosine/">https://elone
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="unwrap" class="doc_header"><code>unwrap</code><a href="https://github.com/fastai/shrinkwrap/tree/master/shrinkwrap/core.py#L124" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>unwrap</code>(<strong><code>f_wrapped</code></strong>, <strong><code>phi_x</code></strong>=<em><code>None</code></em>, <strong><code>phi_y</code></strong>=<em><code>None</code></em>, <strong><code>max_iters</code></strong>=<em><code>500</code></em>, <strong><code>tol</code></strong>=<em><code>0.6283185307179586</code></em>, <strong><code>lmbda</code></strong>=<em><code>1</code></em>, <strong><code>p</code></strong>=<em><code>0</code></em>, <strong><code>c</code></strong>=<em><code>1.3</code></em>, <strong><code>dtype</code></strong>=<em><code>float32</code></em>, <strong><code>debug</code></strong>=<em><code>False</code></em>)</p>
+<h4 id="unwrap" class="doc_header"><code>unwrap</code><a href="https://github.com/fastai/shrinkwrap/tree/master/shrinkwrap/core.py#L125" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>unwrap</code>(<strong><code>f_wrapped</code></strong>, <strong><code>phi_x</code></strong>=<em><code>None</code></em>, <strong><code>phi_y</code></strong>=<em><code>None</code></em>, <strong><code>max_iters</code></strong>=<em><code>500</code></em>, <strong><code>tol</code></strong>=<em><code>0.6283185307179586</code></em>, <strong><code>lmbda</code></strong>=<em><code>1</code></em>, <strong><code>p</code></strong>=<em><code>0</code></em>, <strong><code>c</code></strong>=<em><code>1.3</code></em>, <strong><code>dtype</code></strong>=<em><code>'float32'</code></em>, <strong><code>debug</code></strong>=<em><code>False</code></em>)</p>
 </blockquote>
 <p>Unwrap interferogram phase</p>
 <h2 id="Parameters">Parameters<a class="anchor-link" href="#Parameters"> </a></h2>
-<pre><code>f_wrapped (2D ndarray): wrapped phase image (interferogram)
+<pre><code>f_wrapped (ndarray): wrapped phase image (interferogram)
 phi_x (ndarray): estimate of the x-derivative of the wrapped phase
     If not passed, will compute using [`est_wrapped_gradient`](/shrinkwrap/core.html#est_wrapped_gradient)
 phi_y (ndarray): estimate of the y-derivative of the wrapped phase
@@ -425,10 +425,7 @@ debug (bool): print diagnostic ADMM information</code></pre>
 
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">pi</span>
-
-
-<span class="k">def</span> <span class="nf">make_ramp_test</span><span class="p">(</span><span class="n">r</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">make_ramp_test</span><span class="p">(</span><span class="n">r</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
 
     <span class="n">rramp</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="n">r</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">r</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="mi">10</span>
     <span class="n">cramp</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="n">c</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">c</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="mi">10</span>
@@ -442,7 +439,7 @@ debug (bool): print diagnostic ADMM information</code></pre>
     <span class="c1"># Unwrapped interferogram phase is f</span>
     <span class="n">f</span> <span class="o">=</span> <span class="n">f0</span> <span class="o">+</span> <span class="n">sigma</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>
     <span class="c1"># Wrapped version of unwrapped truth phase:</span>
-    <span class="n">f_wrapped</span> <span class="o">=</span> <span class="p">((</span><span class="n">f</span> <span class="o">+</span> <span class="n">pi</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">pi</span><span class="p">))</span> <span class="o">-</span> <span class="n">pi</span>
+    <span class="n">f_wrapped</span> <span class="o">=</span> <span class="p">((</span><span class="n">f</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">))</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
     <span class="k">return</span> <span class="n">f</span><span class="p">,</span> <span class="n">f_wrapped</span>
 
 
@@ -569,18 +566,11 @@ debug (bool): print diagnostic ADMM information</code></pre>
 
 <div class="output_subarea output_stream output_stdout output_text">
 <pre>Making Dx, Dy with BCs=neumann
+Iteration:0 change=2.800000037659417
+Iteration:1 change=2.4333138481935634e-07
 Finished after 1 with change=2.4333138481935634e-07
-CPU times: user 3.75 ms, sys: 1.16 ms, total: 4.91 ms
-Wall time: 3.88 ms
-</pre>
-</div>
-</div>
-
-<div class="output_area">
-
-<div class="output_subarea output_stream output_stderr output_text">
-<pre>&lt;ipython-input-69-a0978ae3d682&gt;:17: RuntimeWarning: divide by zero encountered in true_divide
-  K = np.nan_to_num(1 / eigvals, posinf=0, neginf=0)
+CPU times: user 6.17 ms, sys: 3.29 ms, total: 9.45 ms
+Wall time: 7.58 ms
 </pre>
 </div>
 </div>
@@ -704,7 +694,9 @@ Therefore, we subtract the means to compare them:</p>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="o">%%time</span>
-<span class="n">unw_result</span> <span class="o">=</span> <span class="n">unwrap</span><span class="p">(</span><span class="n">igram_phase</span><span class="p">,</span> <span class="n">max_iters</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mf">1.3</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">lmbda</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">10</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">unw_result</span> <span class="o">=</span> <span class="n">unwrap</span><span class="p">(</span>
+    <span class="n">igram_phase</span><span class="p">,</span> <span class="n">max_iters</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mf">1.3</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">lmbda</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">10</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
 </pre></div>
 
     </div>
@@ -804,16 +796,18 @@ Wall time: 7.04 s
 
 
 <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">igram_phase</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;plasma&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">igram_phase</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;plasma&quot;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">()</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Wrapped Phase&quot;</span><span class="p">)</span>
 
 
-<span class="n">plot_diff</span><span class="p">(</span><span class="n">unw_result</span><span class="p">,</span> 
-          <span class="n">unw_snaphu</span><span class="p">,</span>
-          <span class="n">zero_mean</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-          <span class="n">titles</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Algo. Result&quot;</span><span class="p">,</span> <span class="s2">&quot;SNAPHU&quot;</span><span class="p">],</span>
-          <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+<span class="n">plot_diff</span><span class="p">(</span>
+    <span class="n">unw_result</span><span class="p">,</span>
+    <span class="n">unw_snaphu</span><span class="p">,</span>
+    <span class="n">zero_mean</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">titles</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Algo. Result&quot;</span><span class="p">,</span> <span class="s2">&quot;SNAPHU&quot;</span><span class="p">],</span>
+    <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
+<span class="p">)</span>
 </pre></div>
 
     </div>
@@ -871,7 +865,7 @@ Wall time: 7.04 s
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">differences</span> <span class="o">=</span> <span class="p">(</span><span class="n">unw_result</span> <span class="o">-</span> <span class="n">unw_snaphu</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
 <span class="n">differences</span> <span class="o">-=</span> <span class="n">differences</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
 
-<span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
 <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">differences</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">51</span><span class="p">)</span>
 <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;ours - snaphu&quot;</span><span class="p">)</span>
 <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;pixel count&quot;</span><span class="p">)</span>
@@ -879,7 +873,7 @@ Wall time: 7.04 s
 <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">differences</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">51</span><span class="p">)</span>
 <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;ours - snaphu&quot;</span><span class="p">)</span>
 <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;pixel count (log scale)&quot;</span><span class="p">)</span>
-<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s1">&#39;log&#39;</span><span class="p">,</span> <span class="n">nonpositive</span><span class="o">=</span><span class="s1">&#39;clip&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">,</span> <span class="n">nonpositive</span><span class="o">=</span><span class="s2">&quot;clip&quot;</span><span class="p">)</span>
 </pre></div>
 
     </div>

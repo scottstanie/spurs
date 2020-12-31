@@ -10,7 +10,9 @@ index = {"make_differentiation_matrices": "00_core.ipynb",
          "load_dem_rsc": "01_loading.ipynb",
          "load_interferogram": "01_loading.ipynb",
          "load_gdal": "01_loading.ipynb",
-         "RSC_KEY_TYPES": "01_loading.ipynb"}
+         "RSC_KEY_TYPES": "01_loading.ipynb",
+         "get_cli_args": "02_cli.ipynb",
+         "main": "02_cli.ipynb"}
 
 modules = ["core.py",
            "loading.py",

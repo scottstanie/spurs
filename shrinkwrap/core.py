@@ -6,7 +6,7 @@ __all__ = ['make_differentiation_matrices', 'est_wrapped_gradient', 'p_shrink', 
 import numpy as np
 from scipy import sparse as sp
 from scipy.fft import dctn, idctn
-
+from .loading import load_interferogram
 
 # Cell
 def make_differentiation_matrices(
@@ -77,9 +77,9 @@ def est_wrapped_gradient(
     phi_x = (Dx @ arr.ravel()).reshape((rows, columns))
     phi_y = (Dy @ arr.ravel()).reshape((rows, columns))
     # Make wrapped adjustmend (eq. (2), (3))
-    idxs = np.abs(phi_x) > pi
+    idxs = np.abs(phi_x) > np.pi
     phi_x[idxs] -= 2 * np.pi * np.sign(phi_x[idxs])
-    idxs = np.abs(phi_y) > pi
+    idxs = np.abs(phi_y) > np.pi
     phi_y[idxs] -= 2 * np.pi * np.sign(phi_y[idxs])
     return phi_x, phi_y
 
@@ -102,7 +102,7 @@ def p_shrink(X, lmbda=1, p=0, epsilon=0):
     return mag * X
 
 # Cell
-def make_laplace_kernel(rows, columns):
+def make_laplace_kernel(rows, columns, dtype='float32'):
     """Generate eigenvalues of diagonalized Laplacian operator
 
     Used for quickly solving the linear system ||D \Phi - phi|| = 0
@@ -117,8 +117,9 @@ def make_laplace_kernel(rows, columns):
     xi_x = (2 - 2 * np.cos(np.pi * np.arange(columns) / columns)).reshape((1, -1))
     eigvals = xi_y + xi_x
 
-    K = np.nan_to_num(1 / eigvals, posinf=0, neginf=0)
-    return K
+    with np.errstate(divide="ignore"):
+        K = np.nan_to_num(1 / eigvals, posinf=0, neginf=0)
+    return K.astype(dtype)
 
 # Cell
 def unwrap(
@@ -130,7 +131,7 @@ def unwrap(
     lmbda=1,
     p=0,
     c=1.3,
-    dtype=np.float32,
+    dtype="float32",
     debug=False,
     #     boundary_conditions="neumann",
 ):
@@ -138,7 +139,7 @@ def unwrap(
 
     Parameters
     ----------
-        f_wrapped (2D ndarray): wrapped phase image (interferogram)
+        f_wrapped (ndarray): wrapped phase image (interferogram)
         phi_x (ndarray): estimate of the x-derivative of the wrapped phase
             If not passed, will compute using `est_wrapped_gradient`
         phi_y (ndarray): estimate of the y-derivative of the wrapped phase
@@ -219,4 +220,5 @@ def unwrap(
 
     if debug:
         print(f"Finished after {iteration} with change={change}")
+    print(F.dtype)
     return F
