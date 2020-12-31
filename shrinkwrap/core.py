@@ -193,7 +193,7 @@ def unwrap(
         RHS = Dx.T * rx + Dy.T * ry
         # Use DCT for neumann:
         rho_hat = dctn(RHS.reshape(rows, columns), type=2, norm='ortho', workers=-1)
-        F = idctn(rho_hat * K, type=2, norm='otho', workers=-1)
+        F = idctn(rho_hat * K, type=2, norm='ortho', workers=-1)
 
         # calculate x, y gradients of new unwrapped phase estimate
         Fx = (Dx @ F.ravel()).reshape(rows, columns)
