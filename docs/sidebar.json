@@ -1,6 +1,8 @@
 {
   "shrinkwrap": {
     "Overview": "/",
-    "shrinkwrap": "core.html"
+    "shrinkwrap": "core.html",
+    "Lo": "loading.html",
+    "CLI: command line interface": "cli.html"
   }
 }

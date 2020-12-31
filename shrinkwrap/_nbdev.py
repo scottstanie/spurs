@@ -7,11 +7,14 @@ index = {"make_differentiation_matrices": "00_core.ipynb",
          "p_shrink": "00_core.ipynb",
          "make_laplace_kernel": "00_core.ipynb",
          "unwrap": "00_core.ipynb",
-         "load_dem_rsc": "00_core.ipynb",
-         "load_interferogram": "00_core.ipynb",
-         "RSC_KEY_TYPES": "00_core.ipynb"}
+         "load_dem_rsc": "01_loading.ipynb",
+         "load_interferogram": "01_loading.ipynb",
+         "load_gdal": "01_loading.ipynb",
+         "RSC_KEY_TYPES": "01_loading.ipynb"}
 
-modules = ["core.py"]
+modules = ["core.py",
+           "loading.py",
+           "cli.py"]
 
 doc_url = "https://fastai.github.io/shrinkwrap/"
 

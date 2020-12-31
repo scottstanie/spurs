@@ -12,6 +12,12 @@ entries:
     - output: web,pdf
       title: shrinkwrap
       url: core.html
+    - output: web,pdf
+      title: Lo
+      url: loading.html
+    - output: web,pdf
+      title: 'CLI: command line interface'
+      url: cli.html
     output: web
     title: shrinkwrap
   output: web
