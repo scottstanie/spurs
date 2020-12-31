@@ -8,7 +8,9 @@ from scipy import sparse as sp
 from scipy.fft import dctn, idctn
 
 # Cell
-def make_differentiation_matrices(rows, columns, boundary_conditions='neumann', dtype=np.float32):
+def make_differentiation_matrices(
+    rows, columns, boundary_conditions="neumann", dtype=np.float32
+):
     """Generate derivative operators as sparse matrices.
 
     Matrix-vector multiplication is the fastest way to compute derivatives
@@ -25,38 +27,36 @@ def make_differentiation_matrices(rows, columns, boundary_conditions='neumann', 
     Source:
     https://github.com/rickchartrand/regularized_differentiation/blob/master/regularized_differentiation/differentiation.py
     """
-    bc_opts = ['neumann', 'periodic', 'dirichlet']
+    bc_opts = ["neumann", "periodic", "dirichlet"]
     bc = boundary_conditions.strip().lower()
     if bc not in bc_opts:
         raise ValueError(f"boundary_conditions must be in {bc_opts}")
 
     # construct derivative with respect to x (axis=1)
-    D = sp.diags([-1., 1.], [0, 1], shape=(columns, columns),
-                 dtype=dtype).tolil()
+    D = sp.diags([-1.0, 1.0], [0, 1], shape=(columns, columns), dtype=dtype).tolil()
 
     if boundary_conditions.lower() == bc_opts[0]:  # neumann
-        D[-1, -1] = 0.
+        D[-1, -1] = 0.0
     elif boundary_conditions.lower() == bc_opts[1]:  # periodic
-        D[-1, 0] = 1.
+        D[-1, 0] = 1.0
     else:
         pass
 
     S = sp.eye(rows, dtype=dtype)
-    Dx = sp.kron(S, D, 'csr')
+    Dx = sp.kron(S, D, "csr")
 
     # construct derivative with respect to y (axis=0)
-    D = sp.diags([-1., 1.], [0, 1], shape=(rows, rows),
-                 dtype=dtype).tolil()
+    D = sp.diags([-1.0, 1.0], [0, 1], shape=(rows, rows), dtype=dtype).tolil()
 
     if boundary_conditions.lower() == bc_opts[0]:
-        D[-1, -1] = 0.
+        D[-1, -1] = 0.0
     elif boundary_conditions.lower() == bc_opts[1]:
-        D[-1, 0] = 1.
+        D[-1, 0] = 1.0
     else:
         pass
 
     S = sp.eye(columns, dtype=dtype)
-    Dy = sp.kron(D, S, 'csr')
+    Dy = sp.kron(D, S, "csr")
 
     return Dx, Dy
 
@@ -72,8 +72,8 @@ def make_laplace_kernel(rows, columns):
     """
     # Note that sign is reversed from numerical recipes eq., since
     # here since our operator discretization sign reversed
-    xi_y = (2 - 2*np.cos(np.pi * np.arange(rows)/rows)).reshape((-1, 1))
-    xi_x = (2 - 2*np.cos(np.pi * np.arange(columns)/columns)).reshape((1, -1))
+    xi_y = (2 - 2 * np.cos(np.pi * np.arange(rows) / rows)).reshape((-1, 1))
+    xi_x = (2 - 2 * np.cos(np.pi * np.arange(columns) / columns)).reshape((1, -1))
     eigvals = xi_y + xi_x
 
     K = np.nan_to_num(1 / eigvals, posinf=0, neginf=0)
@@ -86,32 +86,47 @@ def p_shrink(X, lmbda=1, p=0, epsilon=0):
     magnitude = np.sqrt(np.sum(X ** 2, axis=0))
     nonzero = magnitude.copy()
     nonzero[magnitude == 0.0] = 1.0
-    magnitude = np.maximum(magnitude - lmbda ** (2.0 - p)
-                           * (nonzero ** 2 + epsilon) ** (p / 2.0 - 0.5),
-                           0) / nonzero
+    magnitude = (
+        np.maximum(
+            magnitude
+            - lmbda ** (2.0 - p) * (nonzero ** 2 + epsilon) ** (p / 2.0 - 0.5),
+            0,
+        )
+        / nonzero
+    )
 
     return magnitude * X
 
 # Cell
-def unwrap(f_wrapped, Dx=None, Dy=None, phi_x=None, phi_y=None, max_iters=100,
-           tol=np.pi/5, lmbda=1, p=0, c=1.3, dtype=np.float32, boundary_conditions='neumann'):
+def unwrap(
+    f_wrapped,
+    phi_x=None,
+    phi_y=None,
+    max_iters=100,
+    tol=np.pi / 5,
+    lmbda=1,
+    p=0,
+    c=1.3,
+    dtype=np.float32,
+    boundary_conditions="neumann",
+):
     """Unwrap phase
 
+    Inputs:
+        f_wrapped (2D ndarray): wrapped phase image (interferogram)
+        Dx:
     """
     rows, columns = f_wrapped.shape
     num = rows * columns
 
-
     if Dx is None or Dy is None:
         print(f"Making Dx, Dy with BCs={boundary_conditions}")
-        Dx, Dy = make_differentiation_matrices(*f_wrapped.shape, boundary_conditions=boundary_conditions)
+        Dx, Dy = make_differentiation_matrices(
+            *f_wrapped.shape, boundary_conditions=boundary_conditions
+        )
 
     if phi_x is None or phi_y is None:
         phi_x, phi_y = est_wrapped_gradient(f_wrapped, Dx, Dy)
-
-    # Estimates of
-    psi_x = np.zeros_like(phi_x, dtype=dtype)
-    psi_y = np.zeros_like(phi_y, dtype=dtype)
 
     # Lagrange multiplier variables
     Lambda_x = np.zeros_like(phi_x, dtype=dtype)
@@ -144,7 +159,9 @@ def unwrap(f_wrapped, Dx=None, Dy=None, phi_x=None, phi_y=None, max_iters=100,
 
         input_x = Fx - phi_x + Lambda_x
         input_y = Fy - phi_y + Lambda_y
-        w_x, w_y = p_shrink(np.stack((input_x, input_y), axis=0), lmbda=lmbda, p=p, epsilon=0)
+        w_x, w_y = p_shrink(
+            np.stack((input_x, input_y), axis=0), lmbda=lmbda, p=p, epsilon=0
+        )
 
         # update lagrange multipliers
         Lambda_x += c * (Fx - phi_x - w_x)
@@ -158,7 +175,6 @@ def unwrap(f_wrapped, Dx=None, Dy=None, phi_x=None, phi_y=None, max_iters=100,
             break
         else:
             F_old = F
-
 
     print(f"Finished after {iteration} with change={change}")
     return F
