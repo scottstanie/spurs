@@ -646,9 +646,7 @@ Therefore, we subtract the means to compare them:</p>
 
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">loading</span> <span class="kn">import</span> <span class="n">load_interferogram</span>
-
-<span class="n">igram</span> <span class="o">=</span> <span class="n">load_interferogram</span><span class="p">(</span><span class="s2">&quot;test/data/20150328_20150409.int&quot;</span><span class="p">)</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">igram</span> <span class="o">=</span> <span class="n">load_interferogram</span><span class="p">(</span><span class="s2">&quot;test/data/20150328_20150409.int&quot;</span><span class="p">)</span>
 
 <span class="n">igram_phase</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="n">igram</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;igrams phase dtype, shape: </span><span class="si">{igram_phase.dtype}</span><span class="s2">, </span><span class="si">{igram.shape}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -668,15 +666,15 @@ Therefore, we subtract the means to compare them:</p>
 <div class="output_subarea output_text output_error">
 <pre>
 <span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">ModuleNotFoundError</span>                       Traceback (most recent call last)
-<span class="ansi-green-fg">&lt;ipython-input-140-015f053031a5&gt;</span> in <span class="ansi-cyan-fg">&lt;module&gt;</span>
-<span class="ansi-green-fg">----&gt; 1</span><span class="ansi-red-fg"> </span><span class="ansi-green-fg">from</span> loading <span class="ansi-green-fg">import</span> load_interferogram
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-green-fg">&lt;ipython-input-1-9a06a18a2922&gt;</span> in <span class="ansi-cyan-fg">&lt;module&gt;</span>
+<span class="ansi-green-fg">----&gt; 1</span><span class="ansi-red-fg"> </span>igram <span class="ansi-blue-fg">=</span> load_interferogram<span class="ansi-blue-fg">(</span><span class="ansi-blue-fg">&#34;test/data/20150328_20150409.int&#34;</span><span class="ansi-blue-fg">)</span>
 <span class="ansi-green-intense-fg ansi-bold">      2</span> 
-<span class="ansi-green-intense-fg ansi-bold">      3</span> igram <span class="ansi-blue-fg">=</span> load_interferogram<span class="ansi-blue-fg">(</span><span class="ansi-blue-fg">&#34;test/data/20150328_20150409.int&#34;</span><span class="ansi-blue-fg">)</span>
-<span class="ansi-green-intense-fg ansi-bold">      4</span> 
-<span class="ansi-green-intense-fg ansi-bold">      5</span> igram_phase <span class="ansi-blue-fg">=</span> np<span class="ansi-blue-fg">.</span>angle<span class="ansi-blue-fg">(</span>igram<span class="ansi-blue-fg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">      3</span> igram_phase <span class="ansi-blue-fg">=</span> np<span class="ansi-blue-fg">.</span>angle<span class="ansi-blue-fg">(</span>igram<span class="ansi-blue-fg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">      4</span> print<span class="ansi-blue-fg">(</span><span class="ansi-blue-fg">f&#34;igrams phase dtype, shape: {igram_phase.dtype}, {igram.shape}&#34;</span><span class="ansi-blue-fg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">      5</span> 
 
-<span class="ansi-red-fg">ModuleNotFoundError</span>: No module named &#39;loading&#39;</pre>
+<span class="ansi-red-fg">NameError</span>: name &#39;load_interferogram&#39; is not defined</pre>
 </div>
 </div>
 
