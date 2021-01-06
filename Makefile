@@ -2,11 +2,11 @@
 SHELL := /bin/bash
 SRC = $(wildcard ./*.ipynb)
 
-all: sparsewrap docs
+all: soup docs
 
-sparsewrap: $(SRC)
+soup: $(SRC)
 	nbdev_build_lib
-	touch sparsewrap
+	touch soup
 
 sync:
 	nbdev_update_lib

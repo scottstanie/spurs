@@ -18,8 +18,8 @@ modules = ["core.py",
            "loading.py",
            "cli.py"]
 
-doc_url = "https://fastai.github.io/sparsewrap/"
+doc_url = "https://scottstanie.github.io/soup/"
 
-git_url = "https://github.com/fastai/sparsewrap/tree/master/"
+git_url = "https://github.com/scottstanie/soup/tree/master/"
 
 def custom_doc_links(name): return None

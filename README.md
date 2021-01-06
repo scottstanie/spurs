@@ -1,34 +1,35 @@
-# sparsewrap
-
+# soup: Sparse Optimization for Upwrapping Phase
 
 
 ## Install
 
-`pip install sparsewrap`
+`pip install soup`
 
-`conda install sparsewrap`
+`conda install soup`
 
 ## How to use
 
-Installation will create a command line script `unw`:
+Installation will create a command line script `soup`:
 
 ```bash
-unw 20150608_20170808.int
+soup 20150608_20170808.int
 ```
 By default, will output to file `20150608_20170808.unw` matching the name.
 
 To increase the tolerance (from $\pi/10$ radians) for faster convergence, showing iteration stats:
 ```bash
-unw 20150608_20170808.int -o 20150608_20170808.unw --tol .5 --debug
+soup 20150608_20170808.int -o 20150608_20170808.unw --tol .5 --debug
 ```
 
-See `unw --help` for all options.
+See `soup --help` for all options.
 
 Note that for input interferograms which aren't complex, float32 binary format, `gdal` must be installed. E.g. for a VRT input:
 
 ```bash
-unw 20150608_20170808.vrt -o 20150608_20170808.unw
+soup 20150608_20170808.vrt -o 20150608_20170808.unw
 ```
+
+Soup is an open source implementation of [1]:
 
 
 ## References

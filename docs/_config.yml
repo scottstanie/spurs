@@ -1,9 +1,9 @@
-repository: scottstanie/sparsewrap
+repository: scottstanie/soup
 output: web
-topnav_title: sparsewrap
-site_title: sparsewrap
+topnav_title: soup
+site_title: soup
 company_name: Scott Staniewicz
-description: InSAR phase unwrapping using shrinkage mappings with ADMM
+description: Sparse optimization for unwrapping phase in InSAR interferograms
 # Set to false to disable KaTeX math
 use_math: true
 # Add Google analytics id if you have one and want to use it here
@@ -60,4 +60,4 @@ sidebars:
 - home_sidebar
 
 theme: jekyll-theme-cayman
-baseurl: /sparsewrap/
+baseurl: /soup/
