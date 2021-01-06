@@ -1,6 +1,6 @@
 .ONESHELL:
 SHELL := /bin/bash
-SRC = $(wildcard ./*.ipynb)
+SRC = $(wildcard ./notebooks/*.ipynb)
 
 all: soup docs
 
