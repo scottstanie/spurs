@@ -22,7 +22,7 @@ test:
 	nbdev_test_nbs
 
 release: pypi
-	nbdev_conda_package
+	fastrelease_conda_package
 	nbdev_bump_version
 
 pypi: dist
