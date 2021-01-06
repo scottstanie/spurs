@@ -80,7 +80,3 @@ def main():
     unw_phase = unwrap(phase, **arg_dict)
     unw_with_mag = np.hstack((mag, unw_phase))
     unw_with_mag.tofile(outname)
-
-# Cell
-if __name__ == "__main__":
-    main()
