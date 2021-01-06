@@ -1,7 +1,7 @@
 {
-  "soup": {
+  "spurs": {
     "Overview": "/",
-    "soup": "core.html",
+    "spurs": "core.html",
     "Loading": "loading.html",
     "CLI: command line interface": "cli.html"
   }

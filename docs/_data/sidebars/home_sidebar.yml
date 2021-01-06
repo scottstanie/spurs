@@ -10,7 +10,7 @@ entries:
       title: Overview
       url: /
     - output: web,pdf
-      title: soup
+      title: spurs
       url: core.html
     - output: web,pdf
       title: Loading
@@ -19,6 +19,6 @@ entries:
       title: 'CLI: command line interface'
       url: cli.html
     output: web
-    title: soup
+    title: spurs
   output: web
   title: Sidebar

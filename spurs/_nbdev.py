@@ -18,8 +18,9 @@ modules = ["core.py",
            "loading.py",
            "cli.py"]
 
-doc_url = "https://scottstanie.github.io/soup/"
+doc_url = "https://scottstanie.github.io/spurs/"
 
-git_url = "https://github.com/scottstanie/soup/tree/master/"
+git_url = "https://github.com/scottstanie/spurs/tree/master/"
 
-def custom_doc_links(name): return None
+def custom_doc_links(name):
+    return None

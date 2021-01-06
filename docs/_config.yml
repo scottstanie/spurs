@@ -1,7 +1,7 @@
-repository: scottstanie/soup
+repository: scottstanie/spurs
 output: web
-topnav_title: soup
-site_title: soup
+topnav_title: spurs
+site_title: spurs
 company_name: Scott Staniewicz
 description: Sparse optimization for unwrapping phase in InSAR interferograms
 # Set to false to disable KaTeX math
@@ -60,4 +60,4 @@ sidebars:
 - home_sidebar
 
 theme: jekyll-theme-cayman
-baseurl: /soup/
+baseurl: /spurs/

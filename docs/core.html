@@ -1,6 +1,6 @@
 ---
 
-title: soup
+title: spurs
 
 
 keywords: fastai
@@ -47,7 +47,7 @@ nb_path: "notebooks/00_core.ipynb"
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="make_differentiation_matrices" class="doc_header"><code>make_differentiation_matrices</code><a href="https://github.com/scottstanie/soup/tree/master/soup/core.py#L12" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>make_differentiation_matrices</code>(<strong><code>rows</code></strong>, <strong><code>columns</code></strong>, <strong><code>boundary_conditions</code></strong>=<em><code>'neumann'</code></em>, <strong><code>dtype</code></strong>=<em><code>float32</code></em>)</p>
+<h4 id="make_differentiation_matrices" class="doc_header"><code>make_differentiation_matrices</code><a href="https://github.com/scottstanie/spurs/tree/master/spurs/core.py#L12" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>make_differentiation_matrices</code>(<strong><code>rows</code></strong>, <strong><code>columns</code></strong>, <strong><code>boundary_conditions</code></strong>=<em><code>'neumann'</code></em>, <strong><code>dtype</code></strong>=<em><code>float32</code></em>)</p>
 </blockquote>
 <p>Generate derivative operators as sparse matrices.</p>
 <p>Matrix-vector multiplication is the fastest way to compute derivatives
@@ -153,7 +153,7 @@ to beginning), and 'dirichlet' (out-of-bounds elements are zero).
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="est_wrapped_gradient" class="doc_header"><code>est_wrapped_gradient</code><a href="https://github.com/scottstanie/soup/tree/master/soup/core.py#L65" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>est_wrapped_gradient</code>(<strong><code>arr</code></strong>, <strong><code>Dx</code></strong>=<em><code>None</code></em>, <strong><code>Dy</code></strong>=<em><code>None</code></em>, <strong><code>boundary_conditions</code></strong>=<em><code>'neumann'</code></em>, <strong><code>dtype</code></strong>=<em><code>float32</code></em>)</p>
+<h4 id="est_wrapped_gradient" class="doc_header"><code>est_wrapped_gradient</code><a href="https://github.com/scottstanie/spurs/tree/master/spurs/core.py#L65" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>est_wrapped_gradient</code>(<strong><code>arr</code></strong>, <strong><code>Dx</code></strong>=<em><code>None</code></em>, <strong><code>Dy</code></strong>=<em><code>None</code></em>, <strong><code>boundary_conditions</code></strong>=<em><code>'neumann'</code></em>, <strong><code>dtype</code></strong>=<em><code>float32</code></em>)</p>
 </blockquote>
 <p>Estimate the wrapped gradient of <code>arr</code> using differential operators <code>Dx, Dy</code>
 Adjusts the grad. to be in range [-pi, pi]</p>
@@ -194,7 +194,7 @@ Adjusts the grad. to be in range [-pi, pi]</p>
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="p_shrink" class="doc_header"><code>p_shrink</code><a href="https://github.com/scottstanie/soup/tree/master/soup/core.py#L87" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>p_shrink</code>(<strong><code>X</code></strong>, <strong><code>lmbda</code></strong>=<em><code>1</code></em>, <strong><code>p</code></strong>=<em><code>0</code></em>, <strong><code>epsilon</code></strong>=<em><code>0</code></em>)</p>
+<h4 id="p_shrink" class="doc_header"><code>p_shrink</code><a href="https://github.com/scottstanie/spurs/tree/master/spurs/core.py#L87" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>p_shrink</code>(<strong><code>X</code></strong>, <strong><code>lmbda</code></strong>=<em><code>1</code></em>, <strong><code>p</code></strong>=<em><code>0</code></em>, <strong><code>epsilon</code></strong>=<em><code>0</code></em>)</p>
 </blockquote>
 <p>p-shrinkage in 1-D, with mollification.</p>
 
@@ -288,7 +288,7 @@ $$
 D_x^T \phi_x + D_x^T \phi_y
 $$
 divide by the eigenvalues of the operator, then take the IDCT.</p>
-<p>The <a href="/soup/core.html#make_laplace_kernel"><code>make_laplace_kernel</code></a> gives the inverse of the eigenvalues, so this can be multiplied by <code>DCT(rhs)</code>.</p>
+<p>The <a href="/spurs/core.html#make_laplace_kernel"><code>make_laplace_kernel</code></a> gives the inverse of the eigenvalues, so this can be multiplied by <code>DCT(rhs)</code>.</p>
 
 </div>
 </div>
@@ -304,7 +304,7 @@ divide by the eigenvalues of the operator, then take the IDCT.</p>
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="make_laplace_kernel" class="doc_header"><code>make_laplace_kernel</code><a href="https://github.com/scottstanie/soup/tree/master/soup/core.py#L105" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>make_laplace_kernel</code>(<strong><code>rows</code></strong>, <strong><code>columns</code></strong>, <strong><code>dtype</code></strong>=<em><code>'float32'</code></em>)</p>
+<h4 id="make_laplace_kernel" class="doc_header"><code>make_laplace_kernel</code><a href="https://github.com/scottstanie/spurs/tree/master/spurs/core.py#L105" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>make_laplace_kernel</code>(<strong><code>rows</code></strong>, <strong><code>columns</code></strong>, <strong><code>dtype</code></strong>=<em><code>'float32'</code></em>)</p>
 </blockquote>
 <p>Generate eigenvalues of diagonalized Laplacian operator</p>
 <p>Used for quickly solving the linear system ||D \Phi - phi|| = 0</p>
@@ -340,15 +340,15 @@ or <a href="https://elonen.iki.fi/code/misc-notes/neumann-cosine/">https://elone
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="unwrap" class="doc_header"><code>unwrap</code><a href="https://github.com/scottstanie/soup/tree/master/soup/core.py#L125" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>unwrap</code>(<strong><code>f_wrapped</code></strong>, <strong><code>phi_x</code></strong>=<em><code>None</code></em>, <strong><code>phi_y</code></strong>=<em><code>None</code></em>, <strong><code>max_iters</code></strong>=<em><code>500</code></em>, <strong><code>tol</code></strong>=<em><code>0.6283185307179586</code></em>, <strong><code>lmbda</code></strong>=<em><code>1</code></em>, <strong><code>p</code></strong>=<em><code>0</code></em>, <strong><code>c</code></strong>=<em><code>1.3</code></em>, <strong><code>dtype</code></strong>=<em><code>'float32'</code></em>, <strong><code>debug</code></strong>=<em><code>False</code></em>)</p>
+<h4 id="unwrap" class="doc_header"><code>unwrap</code><a href="https://github.com/scottstanie/spurs/tree/master/spurs/core.py#L125" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>unwrap</code>(<strong><code>f_wrapped</code></strong>, <strong><code>phi_x</code></strong>=<em><code>None</code></em>, <strong><code>phi_y</code></strong>=<em><code>None</code></em>, <strong><code>max_iters</code></strong>=<em><code>500</code></em>, <strong><code>tol</code></strong>=<em><code>0.6283185307179586</code></em>, <strong><code>lmbda</code></strong>=<em><code>1</code></em>, <strong><code>p</code></strong>=<em><code>0</code></em>, <strong><code>c</code></strong>=<em><code>1.3</code></em>, <strong><code>dtype</code></strong>=<em><code>'float32'</code></em>, <strong><code>debug</code></strong>=<em><code>False</code></em>)</p>
 </blockquote>
 <p>Unwrap interferogram phase</p>
 <h2 id="Parameters">Parameters<a class="anchor-link" href="#Parameters"> </a></h2>
 <pre><code>f_wrapped (ndarray): wrapped phase image (interferogram)
 phi_x (ndarray): estimate of the x-derivative of the wrapped phase
-    If not passed, will compute using [`est_wrapped_gradient`](/soup/core.html#est_wrapped_gradient)
+    If not passed, will compute using [`est_wrapped_gradient`](/spurs/core.html#est_wrapped_gradient)
 phi_y (ndarray): estimate of the y-derivative of the wrapped phase
-    If not passed, will compute using [`est_wrapped_gradient`](/soup/core.html#est_wrapped_gradient)
+    If not passed, will compute using [`est_wrapped_gradient`](/spurs/core.html#est_wrapped_gradient)
 max_iters (int): maximum number of ADMM iterations to run
 tol (float): maximum allowed change for any pixel between ADMM iterations
 lmbda (float): splitting parameter of ADMM. Smaller = more stable, Larger = faster convergence.

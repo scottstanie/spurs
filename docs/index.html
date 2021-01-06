@@ -1,6 +1,6 @@
 ---
 
-title: soup: Sparse Optimization for Upwrapping Phase
+title: spurs
 
 
 keywords: fastai
@@ -37,8 +37,8 @@ nb_path: "notebooks/index.ipynb"
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p><code>pip install soup</code></p>
-<p><code>conda install soup</code></p>
+<p><code>pip install spurs</code></p>
+<p><code>conda install spurs</code></p>
 
 </div>
 </div>
@@ -51,16 +51,16 @@ nb_path: "notebooks/index.ipynb"
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>Installation will create a command line script <code>soup</code>:</p>
-<div class="highlight"><pre><span></span>soup 20150608_20170808.int
+<p>Installation will create a command line script <code>spurs</code>:</p>
+<div class="highlight"><pre><span></span>spurs 20150608_20170808.int
 </pre></div>
 <p>By default, will output to file <code>20150608_20170808.unw</code> matching the name.</p>
 <p>To increase the tolerance (from <code>pi/10</code> radians) for faster convergence, showing iteration stats:</p>
-<div class="highlight"><pre><span></span>soup 20150608_20170808.int -o 20150608_20170808.unw --tol .5 --debug
+<div class="highlight"><pre><span></span>spurs 20150608_20170808.int -o 20150608_20170808.unw --tol .5 --debug
 </pre></div>
-<p>See <code>soup --help</code> for all options.</p>
+<p>See <code>spurs --help</code> for all options.</p>
 <p>Note that for input interferograms which aren't complex, float32 binary format, <code>gdal</code> must be installed. E.g. for a VRT input:</p>
-<div class="highlight"><pre><span></span>soup 20150608_20170808.vrt -o 20150608_20170808.unw
+<div class="highlight"><pre><span></span>spurs 20150608_20170808.vrt -o 20150608_20170808.unw
 </pre></div>
 
 </div>
@@ -68,7 +68,7 @@ nb_path: "notebooks/index.ipynb"
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>soup is an open source implementation of [1]:</p>
+<p>spurs is an open source implementation of [1]:</p>
 <h2 id="References">References<a class="anchor-link" href="#References"> </a></h2><ol>
 <li>Chartrand, Rick, Matthew T. Calef, and Michael S. Warren. "Exploiting Sparsity for Phase Unwrapping." IGARSS 2019-2019 IEEE International Geoscience and Remote Sensing Symposium. IEEE, 2019.</li>
 </ol>

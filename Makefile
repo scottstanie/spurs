@@ -2,11 +2,11 @@
 SHELL := /bin/bash
 SRC = $(wildcard ./notebooks/*.ipynb)
 
-all: soup docs
+all: spurs docs
 
-soup: $(SRC)
+spurs: $(SRC)
 	nbdev_build_lib
-	touch soup
+	touch spurs
 
 sync:
 	nbdev_update_lib
