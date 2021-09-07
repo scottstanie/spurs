@@ -7,7 +7,7 @@ import os
 import collections
 import numpy as np
 try:
-    import gdal
+    from osgeo import gdal
     _GDAL_INSTALLED = True
 except ImportError:
     print("WARNING: gdal not installed, can only load binary '.int' files")
@@ -76,7 +76,8 @@ def load_interferogram(filename, dtype=np.complex64, columns=None, rsc_file=None
 
     Can either pass the number of columns, or a .rsc file with metadata
     """
-    if not filename.endswith(".int"):
+    # if not filename.endswith(".int"):
+    if columns is None and rsc_file is None:
         return load_gdal(filename, band=band)
 
     data = np.fromfile(filename, dtype)
