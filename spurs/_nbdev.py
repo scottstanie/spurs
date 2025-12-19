@@ -2,7 +2,10 @@
 
 __all__ = ["index", "modules", "custom_doc_links", "git_url"]
 
-index = {"make_differentiation_matrices": "00_core.ipynb",
+index = {"est_wrapped_gradient_jax": "00_core.ipynb",
+         "p_shrink_jax": "00_core.ipynb",
+         "make_laplace_kernel_jax": "00_core.ipynb",
+         "make_differentiation_matrices": "00_core.ipynb",
          "est_wrapped_gradient": "00_core.ipynb",
          "p_shrink": "00_core.ipynb",
          "make_laplace_kernel": "00_core.ipynb",
