@@ -30,6 +30,7 @@ dependencies = [
 
 [project.optional-dependencies]
 jax = ["jax"]
+cupy = ["cupy-cuda12x"]
 test = ["pytest", "jax"]
 dev = ["pytest", "jax", "ruff", "mypy"]
 

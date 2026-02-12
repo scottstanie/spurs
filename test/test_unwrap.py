@@ -1,7 +1,7 @@
-"""Tests for phase unwrapping with both NumPy and JAX backends"""
+"""Tests for phase unwrapping with NumPy, JAX, and CuPy backends"""
 import numpy as np
 import pytest
-from spurs.core import unwrap, HAS_JAX
+from spurs.core import unwrap, make_congruent, HAS_JAX, HAS_CUPY
 
 
 def test_simple_ramp_numpy():
@@ -120,34 +120,101 @@ def test_invalid_backend():
     assert result is not None
 
 
-if __name__ == "__main__":
-    # Run tests manually
-    print("Running test_simple_ramp_numpy...")
-    test_simple_ramp_numpy()
-    print("✓ PASSED")
+### CuPy backend tests ###
 
-    if HAS_JAX:
-        print("\nRunning test_simple_ramp_jax...")
-        test_simple_ramp_jax()
-        print("✓ PASSED")
+@pytest.mark.skipif(not HAS_CUPY, reason="CuPy not installed")
+def test_simple_ramp_cupy():
+    """Test simple linear phase ramp with CuPy backend"""
+    y, x = np.ogrid[-3:3:512j, -3:3:512j]
+    phase = np.pi * (x + y)
+    igram = np.exp(1j * phase)
+    wrapped_phase = np.angle(igram)
 
-        print("\nRunning test_backends_match...")
-        test_backends_match()
-        print("✓ PASSED")
+    unwrapped = unwrap(wrapped_phase, backend='cupy', max_iters=100, tol=np.pi / 10)
 
-        print("\nRunning test_jax_backend_raises_without_jax...")
-        test_jax_backend_raises_without_jax()
-        print("✓ PASSED")
-    else:
-        print("\nJAX not installed, skipping JAX-specific tests")
+    phase_normalized = phase - phase.mean()
+    unwrapped_normalized = unwrapped - unwrapped.mean()
 
-    print("\nRunning test_wrapped_phase_recovery...")
-    test_wrapped_phase_recovery()
-    print("✓ PASSED")
+    assert np.allclose(phase_normalized, unwrapped_normalized, atol=0.1), \
+        f"Max difference: {np.max(np.abs(phase_normalized - unwrapped_normalized))}"
 
-    print("\nRunning test_invalid_backend...")
-    test_invalid_backend()
-    print("✓ PASSED")
 
-    print("\n" + "="*50)
-    print("All tests passed!")
+@pytest.mark.skipif(not HAS_CUPY, reason="CuPy not installed")
+def test_cupy_numpy_match():
+    """Test that CuPy and NumPy backends produce similar results"""
+    y, x = np.ogrid[-3:3:256j, -3:3:256j]
+    phase = np.pi * (x + y)
+    wrapped_phase = np.angle(np.exp(1j * phase))
+
+    unwrapped_numpy = unwrap(wrapped_phase, backend='numpy', max_iters=100, tol=np.pi / 10)
+    unwrapped_cupy = unwrap(wrapped_phase, backend='cupy', max_iters=100, tol=np.pi / 10)
+
+    np_norm = unwrapped_numpy - unwrapped_numpy.mean()
+    cp_norm = unwrapped_cupy - unwrapped_cupy.mean()
+
+    assert np.allclose(np_norm, cp_norm, atol=0.2), \
+        f"Backends differ. Max difference: {np.max(np.abs(np_norm - cp_norm))}"
+
+
+def test_cupy_backend_import_error():
+    """Test that requesting CuPy backend without CuPy raises ImportError"""
+    if HAS_CUPY:
+        pytest.skip("CuPy is installed, cannot test ImportError")
+    y, x = np.ogrid[-2:2:64j, -2:2:64j]
+    wrapped_phase = np.angle(np.exp(1j * np.pi * x))
+    with pytest.raises(ImportError):
+        unwrap(wrapped_phase, backend='cupy', max_iters=50)
+
+
+### Congruence tests ###
+
+def test_make_congruent_basic():
+    """Test that make_congruent produces integer multiples of 2pi offset"""
+    wrapped = np.array([[0.5, 1.0], [-1.0, 2.0]])
+    # unwrapped is close to wrapped + some 2pi*k, but not exactly
+    unwrapped = wrapped + 2 * np.pi * np.array([[1, 3], [2, -1]]) + 0.3
+    result = make_congruent(unwrapped, wrapped)
+
+    # Result should differ from wrapped by exact integer multiples of 2pi
+    diff = (result - wrapped) / (2 * np.pi)
+    assert np.allclose(diff, np.round(diff)), \
+        f"Result is not congruent with wrapped phase: {diff}"
+
+
+def test_make_congruent_identity():
+    """Test that make_congruent is a no-op when already congruent"""
+    wrapped = np.array([[0.5, -1.0], [2.0, -0.5]])
+    unwrapped = wrapped + 2 * np.pi * np.array([[3, -2], [1, 5]], dtype=float)
+    result = make_congruent(unwrapped, wrapped)
+    assert np.allclose(result, unwrapped)
+
+
+def test_congruent_flag_in_unwrap():
+    """Test that the congruent flag produces phase congruent with input"""
+    y, x = np.ogrid[-3:3:128j, -3:3:128j]
+    phase = np.pi * (x + y)
+    wrapped_phase = np.angle(np.exp(1j * phase))
+
+    unwrapped = unwrap(wrapped_phase, backend='numpy', max_iters=100,
+                       tol=np.pi / 10, congruent=True)
+
+    # Check congruence: (unwrapped - wrapped) should be integer multiples of 2pi
+    diff = (unwrapped - wrapped_phase) / (2 * np.pi)
+    assert np.allclose(diff, np.round(diff), atol=1e-6), \
+        f"Max non-integer residual: {np.max(np.abs(diff - np.round(diff)))}"
+
+
+def test_congruent_preserves_quality():
+    """Test that congruent flag doesn't degrade unwrapping quality"""
+    y, x = np.ogrid[-3:3:256j, -3:3:256j]
+    phase = np.pi * (x + y)
+    wrapped_phase = np.angle(np.exp(1j * phase))
+
+    unwrapped = unwrap(wrapped_phase, backend='numpy', max_iters=100,
+                       tol=np.pi / 10, congruent=True)
+
+    phase_norm = phase - phase.mean()
+    unwrapped_norm = unwrapped - unwrapped.mean()
+
+    assert np.allclose(phase_norm, unwrapped_norm, atol=0.2), \
+        f"Max diff: {np.max(np.abs(phase_norm - unwrapped_norm))}"

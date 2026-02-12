@@ -58,6 +58,18 @@ def get_cli_args():
     parser.add_argument(
         "--debug", action="store_true", help="print diagnostic ADMM information"
     )
+    parser.add_argument(
+        "--backend",
+        default="numpy",
+        choices=["numpy", "jax", "cupy"],
+        help="computation backend to use (default = %(default)s)",
+    )
+    parser.add_argument(
+        "--congruent",
+        action="store_true",
+        help="post-process unwrapped phase to be congruent with the input"
+        " (i.e. differ by an integer multiple of 2*pi)",
+    )
     return parser.parse_args()
 
 

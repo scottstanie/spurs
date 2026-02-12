@@ -4,8 +4,12 @@ This module provides sparse phase unwrapping using ADMM optimization,
 with support for both NumPy and JAX backends.
 """
 
-__all__ = ['est_wrapped_gradient_jax', 'p_shrink_jax', 'make_laplace_kernel_jax', 'make_differentiation_matrices',
-           'est_wrapped_gradient', 'p_shrink', 'make_laplace_kernel', 'unwrap']
+__all__ = [
+    'est_wrapped_gradient_jax', 'p_shrink_jax',
+    'make_laplace_kernel_jax', 'make_differentiation_matrices',
+    'est_wrapped_gradient', 'p_shrink', 'make_laplace_kernel',
+    'unwrap', 'make_congruent',
+]
 
 import numpy as np
 from scipy import sparse as sp
@@ -23,6 +27,15 @@ except ImportError:
     HAS_JAX = False
     jax = None
     jnp = None
+
+# Optional CuPy support
+try:
+    import cupy as cp
+    from cupyx.scipy.fft import dctn as cupy_dctn, idctn as cupy_idctn
+    HAS_CUPY = True
+except ImportError:
+    HAS_CUPY = False
+    cp = None
 
 
 
@@ -201,6 +214,184 @@ if HAS_JAX:
 
 
 
+### CuPy backend functions ###
+
+def _apply_gradient_x_cupy(arr):
+    """Compute x-gradient using CuPy (Neumann boundary conditions)"""
+    grad = cp.concatenate([
+        arr[:, 1:] - arr[:, :-1],
+        cp.zeros((arr.shape[0], 1), dtype=arr.dtype)
+    ], axis=1)
+    return grad
+
+def _apply_gradient_y_cupy(arr):
+    """Compute y-gradient using CuPy (Neumann boundary conditions)"""
+    grad = cp.concatenate([
+        arr[1:, :] - arr[:-1, :],
+        cp.zeros((1, arr.shape[1]), dtype=arr.dtype)
+    ], axis=0)
+    return grad
+
+def _apply_divergence_cupy(grad_x, grad_y):
+    """Compute divergence (adjoint of gradient) using CuPy"""
+    div_x = cp.concatenate([
+        -grad_x[:, :1],
+        grad_x[:, :-2] - grad_x[:, 1:-1],
+        grad_x[:, -2:-1]
+    ], axis=1)
+
+    div_y = cp.concatenate([
+        -grad_y[:1, :],
+        grad_y[:-2, :] - grad_y[1:-1, :],
+        grad_y[-2:-1, :]
+    ], axis=0)
+
+    return div_x + div_y
+
+def est_wrapped_gradient_cupy(arr, dtype='float32'):
+    """Estimate wrapped gradient using CuPy"""
+    arr = arr.astype(dtype)
+    phi_x = _apply_gradient_x_cupy(arr)
+    phi_y = _apply_gradient_y_cupy(arr)
+
+    # Wrap to [-pi, pi]
+    phi_x = cp.where(cp.abs(phi_x) > cp.pi,
+                     phi_x - 2 * cp.pi * cp.sign(phi_x),
+                     phi_x)
+    phi_y = cp.where(cp.abs(phi_y) > cp.pi,
+                     phi_y - 2 * cp.pi * cp.sign(phi_y),
+                     phi_y)
+    return phi_x, phi_y
+
+def p_shrink_cupy(X, lmbda=1, p=0, epsilon=0):
+    """CuPy version of p-shrinkage"""
+    mag = cp.sqrt(cp.sum(X ** 2, axis=0))
+    nonzero = cp.where(mag == 0.0, 1.0, mag)
+    mag = (
+        cp.maximum(
+            mag - lmbda ** (2.0 - p) * (nonzero ** 2 + epsilon) ** (p / 2.0 - 0.5),
+            0,
+        )
+        / nonzero
+    )
+    return mag * X
+
+def make_laplace_kernel_cupy(rows, columns, dtype='float32'):
+    """CuPy version of Laplacian kernel"""
+    xi_y = (2 - 2 * cp.cos(cp.pi * cp.arange(rows) / rows)).reshape((-1, 1))
+    xi_x = (2 - 2 * cp.cos(cp.pi * cp.arange(columns) / columns)).reshape((1, -1))
+    eigvals = xi_y + xi_x
+    K = cp.where(eigvals == 0, 0.0, 1.0 / eigvals)
+    return K.astype(dtype)
+
+
+def unwrap_cupy(
+    f_wrapped,
+    phi_x=None,
+    phi_y=None,
+    max_iters=500,
+    tol=np.pi / 5,
+    lmbda=1,
+    p=0,
+    c=1.3,
+    dtype="float32",
+    debug=False,
+):
+    """CuPy-based unwrap with GPU acceleration"""
+    rows, columns = f_wrapped.shape
+
+    if dtype is None:
+        dtype = f_wrapped.dtype
+    else:
+        f_wrapped = f_wrapped.astype(dtype)
+
+    # Convert to CuPy arrays
+    f_wrapped = cp.asarray(f_wrapped)
+
+    if phi_x is None or phi_y is None:
+        phi_x, phi_y = est_wrapped_gradient_cupy(f_wrapped, dtype=dtype)
+    else:
+        phi_x = cp.asarray(phi_x)
+        phi_y = cp.asarray(phi_y)
+
+    # Initialize variables
+    Lambda_x = cp.zeros_like(phi_x, dtype=dtype)
+    Lambda_y = cp.zeros_like(phi_y, dtype=dtype)
+    w_x = cp.zeros_like(phi_x, dtype=dtype)
+    w_y = cp.zeros_like(phi_y, dtype=dtype)
+    F_old = cp.zeros_like(f_wrapped)
+
+    # Precompute Laplacian kernel
+    K = make_laplace_kernel_cupy(rows, columns, dtype=dtype)
+
+    for iteration in range(max_iters):
+        # Solve linear system in Fourier domain
+        rx = w_x + phi_x - Lambda_x
+        ry = w_y + phi_y - Lambda_y
+        RHS = _apply_divergence_cupy(rx, ry)
+
+        # DCT for Neumann boundary conditions (CuPy supports ndim DCT)
+        rho_hat = cupy_dctn(RHS, type=2, norm='ortho')
+        F = cupy_idctn(rho_hat * K, type=2, norm='ortho')
+
+        # Compute gradients
+        Fx = _apply_gradient_x_cupy(F)
+        Fy = _apply_gradient_y_cupy(F)
+
+        # Shrinkage step
+        input_x = Fx - phi_x + Lambda_x
+        input_y = Fy - phi_y + Lambda_y
+        stacked = cp.stack((input_x, input_y), axis=0)
+        shrunk = p_shrink_cupy(stacked, lmbda=lmbda, p=p, epsilon=0)
+        w_x, w_y = shrunk[0], shrunk[1]
+
+        # Update Lagrange multipliers
+        Lambda_x = Lambda_x + c * (Fx - phi_x - w_x)
+        Lambda_y = Lambda_y + c * (Fy - phi_y - w_y)
+
+        change = float(cp.max(cp.abs(F - F_old)))
+        if debug:
+            print(f"Iteration:{iteration} change={change}")
+
+        if change < tol or np.isnan(change):
+            break
+        else:
+            F_old = F
+
+    if debug:
+        print(f"Finished after {iteration} with change={change}")
+
+    # Convert back to numpy
+    return cp.asnumpy(F)
+
+
+### Congruence post-processing ###
+
+def make_congruent(unwrapped, wrapped):
+    """Adjust unwrapped phase to be congruent with the wrapped phase.
+
+    The ADMM algorithm does not guarantee that the unwrapped phase differs
+    from the wrapped phase by an integer multiple of 2pi. This function
+    rounds to the nearest integer ambiguity so that
+        unwrapped_out = wrapped + 2*pi*k
+    for integer k at each pixel.
+
+    Parameters
+    ----------
+    unwrapped : ndarray
+        Unwrapped phase from the solver.
+    wrapped : ndarray
+        Original wrapped phase (in radians, range [-pi, pi]).
+
+    Returns
+    -------
+    ndarray
+        Adjusted unwrapped phase congruent with the input.
+    """
+    k = np.round((unwrapped - wrapped) / (2 * np.pi))
+    return wrapped + 2 * np.pi * k
+
+
 def make_differentiation_matrices(
     rows, columns, boundary_conditions="neumann", dtype=np.float32
 ):
@@ -326,6 +517,7 @@ def unwrap(
     dtype="float32",
     debug=False,
     backend="numpy",
+    congruent=False,
 ):
     """Unwrap interferogram phase
 
@@ -343,12 +535,36 @@ def unwrap(
         c (float): acceleration constant using in updating lagrange multipliers in ADMM
         dtype: numpy datatype for output
         debug (bool): print diagnostic ADMM information
-        backend (str): Backend to use - 'numpy' or 'jax'. Default is 'numpy'.
+        backend (str): Backend to use - 'numpy', 'jax', or 'cupy'. Default is 'numpy'.
+        congruent (bool): If True, post-process the result so that the unwrapped
+            phase differs from the wrapped phase by an integer multiple of 2*pi.
     """
     if backend == "jax":
         if not HAS_JAX:
-            raise ImportError("JAX is not installed. Install with: pip install jax jaxlib")
-        return unwrap_jax(f_wrapped, phi_x, phi_y, max_iters, tol, lmbda, p, c, dtype, debug)
+            raise ImportError(
+                "JAX is not installed. Install with: pip install jax"
+            )
+        result = unwrap_jax(
+            f_wrapped, phi_x, phi_y, max_iters, tol,
+            lmbda, p, c, dtype, debug,
+        )
+        if congruent:
+            result = make_congruent(result, f_wrapped)
+        return result
+
+    if backend == "cupy":
+        if not HAS_CUPY:
+            raise ImportError(
+                "CuPy is not installed. Install with: "
+                "pip install cupy-cuda12x"
+            )
+        result = unwrap_cupy(
+            f_wrapped, phi_x, phi_y, max_iters, tol,
+            lmbda, p, c, dtype, debug,
+        )
+        if congruent:
+            result = make_congruent(result, f_wrapped)
+        return result
 
     # Original NumPy implementation
     rows, columns = f_wrapped.shape
@@ -419,4 +635,7 @@ def unwrap(
 
     if debug:
         print(f"Finished after {iteration} with change={change}")
+
+    if congruent:
+        F = make_congruent(F, f_wrapped)
     return F
