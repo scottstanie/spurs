@@ -1,7 +1,7 @@
 """Core phase unwrapping algorithms for SPURS.
 
 This module provides sparse phase unwrapping using ADMM optimization,
-with support for both NumPy and JAX backends.
+with support for NumPy, JAX, and CuPy backends.
 """
 
 __all__ = [
@@ -38,116 +38,114 @@ except ImportError:
     cp = None
 
 
+# --- Generic array-module helpers (work with np, cp, or jnp) ---
 
-def _apply_gradient_x_jax(arr):
-    """Compute x-gradient using JAX (Neumann boundary conditions)"""
-    # Forward difference: arr[:, 1:] - arr[:, :-1]
-    grad = jnp.concatenate([
+def _apply_gradient_x(arr, xp):
+    """Forward difference along axis=1 with Neumann BCs."""
+    return xp.concatenate([
         arr[:, 1:] - arr[:, :-1],
-        jnp.zeros((arr.shape[0], 1), dtype=arr.dtype)
+        xp.zeros((arr.shape[0], 1), dtype=arr.dtype)
     ], axis=1)
-    return grad
 
-def _apply_gradient_y_jax(arr):
-    """Compute y-gradient using JAX (Neumann boundary conditions)"""
-    # Forward difference: arr[1:, :] - arr[:-1, :]
-    grad = jnp.concatenate([
+def _apply_gradient_y(arr, xp):
+    """Forward difference along axis=0 with Neumann BCs."""
+    return xp.concatenate([
         arr[1:, :] - arr[:-1, :],
-        jnp.zeros((1, arr.shape[1]), dtype=arr.dtype)
+        xp.zeros((1, arr.shape[1]), dtype=arr.dtype)
     ], axis=0)
-    return grad
 
-def _apply_divergence_jax(grad_x, grad_y):
-    """Compute divergence (adjoint of gradient) using JAX
-
-    For Neumann boundary conditions with forward differences:
-    - Dx has pattern [-1, 1] along rows, with last column being 0
-    - Dx.T (divergence) pattern: first col = -grad[0], middle = grad[i-1] - grad[i], last = grad[-2]
-    """
-    # Divergence in x-direction (adjoint of forward difference along columns)
-    # For each row: [-grad[0], grad[0]-grad[1], grad[1]-grad[2], ..., grad[-2]-grad[-1]]
-    # Since grad[:, -1] = 0 (Neumann), last becomes grad[:, -2]
-    div_x = jnp.concatenate([
-        -grad_x[:, :1],  # First column: -grad[:, 0]
-        grad_x[:, :-2] - grad_x[:, 1:-1],  # Middle columns: grad[:, i-1] - grad[:, i]
-        grad_x[:, -2:-1]  # Last column: grad[:, -2] (since grad[:, -1] = 0)
+def _apply_divergence(grad_x, grad_y, xp):
+    """Divergence (adjoint of gradient) for Neumann BCs."""
+    div_x = xp.concatenate([
+        -grad_x[:, :1],
+        grad_x[:, :-2] - grad_x[:, 1:-1],
+        grad_x[:, -2:-1]
     ], axis=1)
-
-    # Divergence in y-direction (adjoint of forward difference along rows)
-    div_y = jnp.concatenate([
-        -grad_y[:1, :],  # First row: -grad[0, :]
-        grad_y[:-2, :] - grad_y[1:-1, :],  # Middle rows: grad[i-1, :] - grad[i, :]
-        grad_y[-2:-1, :]  # Last row: grad[-2, :] (since grad[-1, :] = 0)
+    div_y = xp.concatenate([
+        -grad_y[:1, :],
+        grad_y[:-2, :] - grad_y[1:-1, :],
+        grad_y[-2:-1, :]
     ], axis=0)
-
     return div_x + div_y
 
-def est_wrapped_gradient_jax(arr, dtype=jnp.float32):
-    """Estimate wrapped gradient using JAX"""
+def _est_wrapped_gradient(arr, xp, dtype='float32'):
+    """Estimate wrapped gradient; wraps result to [-pi, pi]."""
     arr = arr.astype(dtype)
-    phi_x = _apply_gradient_x_jax(arr)
-    phi_y = _apply_gradient_y_jax(arr)
-
-    # Wrap to [-pi, pi]
-    phi_x = jnp.where(jnp.abs(phi_x) > jnp.pi,
-                      phi_x - 2 * jnp.pi * jnp.sign(phi_x),
-                      phi_x)
-    phi_y = jnp.where(jnp.abs(phi_y) > jnp.pi,
-                      phi_y - 2 * jnp.pi * jnp.sign(phi_y),
-                      phi_y)
+    phi_x = _apply_gradient_x(arr, xp)
+    phi_y = _apply_gradient_y(arr, xp)
+    phi_x = xp.where(xp.abs(phi_x) > xp.pi,
+                     phi_x - 2 * xp.pi * xp.sign(phi_x),
+                     phi_x)
+    phi_y = xp.where(xp.abs(phi_y) > xp.pi,
+                     phi_y - 2 * xp.pi * xp.sign(phi_y),
+                     phi_y)
     return phi_x, phi_y
 
-
-
-def p_shrink_jax(X, lmbda=1, p=0, epsilon=0):
-    """JAX version of p-shrinkage"""
-    mag = jnp.sqrt(jnp.sum(X ** 2, axis=0))
-    nonzero = jnp.where(mag == 0.0, 1.0, mag)
+def _p_shrink(X, xp, lmbda=1, p=0, epsilon=0):
+    """p-shrinkage operator."""
+    mag = xp.sqrt(xp.sum(X ** 2, axis=0))
+    nonzero = xp.where(mag == 0.0, 1.0, mag)
     mag = (
-        jnp.maximum(
-            mag - lmbda ** (2.0 - p) * (nonzero ** 2 + epsilon) ** (p / 2.0 - 0.5),
+        xp.maximum(
+            mag - lmbda ** (2.0 - p)
+            * (nonzero ** 2 + epsilon) ** (p / 2.0 - 0.5),
             0,
         )
         / nonzero
     )
     return mag * X
 
-def make_laplace_kernel_jax(rows, columns, dtype='float32'):
-    """JAX version of Laplacian kernel"""
-    xi_y = (2 - 2 * jnp.cos(jnp.pi * jnp.arange(rows) / rows)).reshape((-1, 1))
-    xi_x = (2 - 2 * jnp.cos(jnp.pi * jnp.arange(columns) / columns)).reshape((1, -1))
+def _make_laplace_kernel(rows, columns, xp, dtype='float32'):
+    """Laplacian eigenvalues for Neumann BCs."""
+    xi_y = (
+        2 - 2 * xp.cos(xp.pi * xp.arange(rows) / rows)
+    ).reshape((-1, 1))
+    xi_x = (
+        2 - 2 * xp.cos(xp.pi * xp.arange(columns) / columns)
+    ).reshape((1, -1))
     eigvals = xi_y + xi_x
-    K = jnp.where(eigvals == 0, 0.0, 1.0 / eigvals)
+    K = xp.where(eigvals == 0, 0.0, 1.0 / eigvals)
     return K.astype(dtype)
 
 
+# --- JAX wrappers (backward-compatible public API) ---
+
+def est_wrapped_gradient_jax(arr, dtype='float32'):
+    """Estimate wrapped gradient using JAX."""
+    return _est_wrapped_gradient(arr, jnp, dtype=dtype)
+
+def p_shrink_jax(X, lmbda=1, p=0, epsilon=0):
+    """JAX version of p-shrinkage."""
+    return _p_shrink(X, jnp, lmbda=lmbda, p=p, epsilon=epsilon)
+
+def make_laplace_kernel_jax(rows, columns, dtype='float32'):
+    """JAX version of Laplacian kernel."""
+    return _make_laplace_kernel(rows, columns, jnp, dtype=dtype)
+
+
+# --- JAX backend ---
 
 if HAS_JAX:
     @partial(jax.jit, static_argnums=(8, 9, 10))
     def _unwrap_step_jax(F, phi_x, phi_y, Lambda_x, Lambda_y, w_x, w_y, K, lmbda, p, c):
         """Single ADMM iteration (JIT-compiled)"""
-        # Solve linear system in Fourier domain
         rx = w_x + phi_x - Lambda_x
         ry = w_y + phi_y - Lambda_y
-        RHS = _apply_divergence_jax(rx, ry)
+        RHS = _apply_divergence(rx, ry, jnp)
 
-        # DCT for Neumann boundary conditions
         # JAX's DCT is 1D, so apply to both axes
         rho_hat = dct(dct(RHS, type=2, norm='ortho', axis=0), type=2, norm='ortho', axis=1)
         F = idct(idct(rho_hat * K, type=2, norm='ortho', axis=1), type=2, norm='ortho', axis=0)
 
-        # Compute gradients
-        Fx = _apply_gradient_x_jax(F)
-        Fy = _apply_gradient_y_jax(F)
+        Fx = _apply_gradient_x(F, jnp)
+        Fy = _apply_gradient_y(F, jnp)
 
-        # Shrinkage step
         input_x = Fx - phi_x + Lambda_x
         input_y = Fy - phi_y + Lambda_y
         stacked = jnp.stack((input_x, input_y), axis=0)
-        shrunk = p_shrink_jax(stacked, lmbda=lmbda, p=p, epsilon=0)
+        shrunk = _p_shrink(stacked, jnp, lmbda=lmbda, p=p, epsilon=0)
         w_x, w_y = shrunk[0], shrunk[1]
 
-        # Update Lagrange multipliers
         Lambda_x = Lambda_x + c * (Fx - phi_x - w_x)
         Lambda_y = Lambda_y + c * (Fy - phi_y - w_y)
 
@@ -173,24 +171,21 @@ if HAS_JAX:
         else:
             f_wrapped = f_wrapped.astype(dtype)
 
-        # Convert to JAX arrays
         f_wrapped = jnp.array(f_wrapped)
 
         if phi_x is None or phi_y is None:
-            phi_x, phi_y = est_wrapped_gradient_jax(f_wrapped, dtype=dtype)
+            phi_x, phi_y = _est_wrapped_gradient(f_wrapped, jnp, dtype=dtype)
         else:
             phi_x = jnp.array(phi_x)
             phi_y = jnp.array(phi_y)
 
-        # Initialize variables
         Lambda_x = jnp.zeros_like(phi_x, dtype=dtype)
         Lambda_y = jnp.zeros_like(phi_y, dtype=dtype)
         w_x = jnp.zeros_like(phi_x, dtype=dtype)
         w_y = jnp.zeros_like(phi_y, dtype=dtype)
         F_old = jnp.zeros_like(f_wrapped)
 
-        # Precompute Laplacian kernel
-        K = make_laplace_kernel_jax(rows, columns, dtype=dtype)
+        K = _make_laplace_kernel(rows, columns, jnp, dtype=dtype)
 
         for iteration in range(max_iters):
             F, Lambda_x, Lambda_y, w_x, w_y = _unwrap_step_jax(
@@ -209,81 +204,10 @@ if HAS_JAX:
         if debug:
             print(f"Finished after {iteration} with change={change}")
 
-        # Convert back to numpy for consistency
         return np.array(F)
 
 
-
-### CuPy backend functions ###
-
-def _apply_gradient_x_cupy(arr):
-    """Compute x-gradient using CuPy (Neumann boundary conditions)"""
-    grad = cp.concatenate([
-        arr[:, 1:] - arr[:, :-1],
-        cp.zeros((arr.shape[0], 1), dtype=arr.dtype)
-    ], axis=1)
-    return grad
-
-def _apply_gradient_y_cupy(arr):
-    """Compute y-gradient using CuPy (Neumann boundary conditions)"""
-    grad = cp.concatenate([
-        arr[1:, :] - arr[:-1, :],
-        cp.zeros((1, arr.shape[1]), dtype=arr.dtype)
-    ], axis=0)
-    return grad
-
-def _apply_divergence_cupy(grad_x, grad_y):
-    """Compute divergence (adjoint of gradient) using CuPy"""
-    div_x = cp.concatenate([
-        -grad_x[:, :1],
-        grad_x[:, :-2] - grad_x[:, 1:-1],
-        grad_x[:, -2:-1]
-    ], axis=1)
-
-    div_y = cp.concatenate([
-        -grad_y[:1, :],
-        grad_y[:-2, :] - grad_y[1:-1, :],
-        grad_y[-2:-1, :]
-    ], axis=0)
-
-    return div_x + div_y
-
-def est_wrapped_gradient_cupy(arr, dtype='float32'):
-    """Estimate wrapped gradient using CuPy"""
-    arr = arr.astype(dtype)
-    phi_x = _apply_gradient_x_cupy(arr)
-    phi_y = _apply_gradient_y_cupy(arr)
-
-    # Wrap to [-pi, pi]
-    phi_x = cp.where(cp.abs(phi_x) > cp.pi,
-                     phi_x - 2 * cp.pi * cp.sign(phi_x),
-                     phi_x)
-    phi_y = cp.where(cp.abs(phi_y) > cp.pi,
-                     phi_y - 2 * cp.pi * cp.sign(phi_y),
-                     phi_y)
-    return phi_x, phi_y
-
-def p_shrink_cupy(X, lmbda=1, p=0, epsilon=0):
-    """CuPy version of p-shrinkage"""
-    mag = cp.sqrt(cp.sum(X ** 2, axis=0))
-    nonzero = cp.where(mag == 0.0, 1.0, mag)
-    mag = (
-        cp.maximum(
-            mag - lmbda ** (2.0 - p) * (nonzero ** 2 + epsilon) ** (p / 2.0 - 0.5),
-            0,
-        )
-        / nonzero
-    )
-    return mag * X
-
-def make_laplace_kernel_cupy(rows, columns, dtype='float32'):
-    """CuPy version of Laplacian kernel"""
-    xi_y = (2 - 2 * cp.cos(cp.pi * cp.arange(rows) / rows)).reshape((-1, 1))
-    xi_x = (2 - 2 * cp.cos(cp.pi * cp.arange(columns) / columns)).reshape((1, -1))
-    eigvals = xi_y + xi_x
-    K = cp.where(eigvals == 0, 0.0, 1.0 / eigvals)
-    return K.astype(dtype)
-
+# --- CuPy backend ---
 
 def unwrap_cupy(
     f_wrapped,
@@ -297,7 +221,7 @@ def unwrap_cupy(
     dtype="float32",
     debug=False,
 ):
-    """CuPy-based unwrap with GPU acceleration"""
+    """CuPy-based unwrap with GPU acceleration."""
     rows, columns = f_wrapped.shape
 
     if dtype is None:
@@ -305,47 +229,40 @@ def unwrap_cupy(
     else:
         f_wrapped = f_wrapped.astype(dtype)
 
-    # Convert to CuPy arrays
     f_wrapped = cp.asarray(f_wrapped)
 
     if phi_x is None or phi_y is None:
-        phi_x, phi_y = est_wrapped_gradient_cupy(f_wrapped, dtype=dtype)
+        phi_x, phi_y = _est_wrapped_gradient(f_wrapped, cp, dtype=dtype)
     else:
         phi_x = cp.asarray(phi_x)
         phi_y = cp.asarray(phi_y)
 
-    # Initialize variables
     Lambda_x = cp.zeros_like(phi_x, dtype=dtype)
     Lambda_y = cp.zeros_like(phi_y, dtype=dtype)
     w_x = cp.zeros_like(phi_x, dtype=dtype)
     w_y = cp.zeros_like(phi_y, dtype=dtype)
     F_old = cp.zeros_like(f_wrapped)
 
-    # Precompute Laplacian kernel
-    K = make_laplace_kernel_cupy(rows, columns, dtype=dtype)
+    K = _make_laplace_kernel(rows, columns, cp, dtype=dtype)
 
     for iteration in range(max_iters):
-        # Solve linear system in Fourier domain
         rx = w_x + phi_x - Lambda_x
         ry = w_y + phi_y - Lambda_y
-        RHS = _apply_divergence_cupy(rx, ry)
+        RHS = _apply_divergence(rx, ry, cp)
 
-        # DCT for Neumann boundary conditions (CuPy supports ndim DCT)
+        # CuPy supports ndim DCT like scipy
         rho_hat = cupy_dctn(RHS, type=2, norm='ortho')
         F = cupy_idctn(rho_hat * K, type=2, norm='ortho')
 
-        # Compute gradients
-        Fx = _apply_gradient_x_cupy(F)
-        Fy = _apply_gradient_y_cupy(F)
+        Fx = _apply_gradient_x(F, cp)
+        Fy = _apply_gradient_y(F, cp)
 
-        # Shrinkage step
         input_x = Fx - phi_x + Lambda_x
         input_y = Fy - phi_y + Lambda_y
         stacked = cp.stack((input_x, input_y), axis=0)
-        shrunk = p_shrink_cupy(stacked, lmbda=lmbda, p=p, epsilon=0)
+        shrunk = _p_shrink(stacked, cp, lmbda=lmbda, p=p, epsilon=0)
         w_x, w_y = shrunk[0], shrunk[1]
 
-        # Update Lagrange multipliers
         Lambda_x = Lambda_x + c * (Fx - phi_x - w_x)
         Lambda_y = Lambda_y + c * (Fy - phi_y - w_y)
 
@@ -361,7 +278,6 @@ def unwrap_cupy(
     if debug:
         print(f"Finished after {iteration} with change={change}")
 
-    # Convert back to numpy
     return cp.asnumpy(F)
 
 
@@ -391,6 +307,8 @@ def make_congruent(unwrapped, wrapped):
     k = np.round((unwrapped - wrapped) / (2 * np.pi))
     return wrapped + 2 * np.pi * k
 
+
+# --- NumPy sparse-matrix backend ---
 
 def make_differentiation_matrices(
     rows, columns, boundary_conditions="neumann", dtype=np.float32
