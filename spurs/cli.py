@@ -7,7 +7,7 @@ import argparse
 import os
 import numpy as np
 from .core import unwrap
-from .loading import load_interferogram
+from .loading import load_interferogram, save_output
 
 # Cell
 
@@ -84,11 +84,5 @@ def main():
         base, ext = os.path.splitext(inname)
         outname = base + ".unw"
 
-    if not outname.endswith(".unw"):
-        raise NotImplementedError(
-            "Only saving as binary .unw is implemented currently."
-        )
-    # TODO: save as other types?
     unw_phase = unwrap(phase, **arg_dict)
-    unw_with_mag = np.hstack((mag, unw_phase))
-    unw_with_mag.tofile(outname)
+    save_output(outname, mag, unw_phase, inname=inname)
